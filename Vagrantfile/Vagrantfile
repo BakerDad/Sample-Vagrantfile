@@ -1,0 +1,34 @@
+require 'yaml'
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+# Read YAML file with box details
+masterservers = YAML.load_file('MasterConfig.yaml')
+slaveservers = YAML.load_file('SlavesConfig.yaml')
+
+def shared_folders(vm, host)
+  if host.has_key?('shared_folders')
+    folders = host['shared_folders']
+
+    folders.each do |folder|
+      vm.synced_folder folder['src'], folder['dest'], folder['options']
+    end
+  end
+end
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  # Iterate through entries in YAML file
+  slaveservers.each do |slaveservers|
+    config.vm.define slaveservers["name"] do |srv|
+      srv.vm.box = slaveservers["box"]
+      srv.vm.network "private_network", ip: slaveservers["ip"]
+      shared_folders(srv.vm, slaveservers)
+      srv.vm.provider :virtualbox do |vb|
+        vb.name = slaveservers["name"]
+        vb.memory = slaveservers["mem"]
+      end
+    end
+  end
+end

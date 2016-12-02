@@ -1,0 +1,27 @@
+---
+- name: node-1
+  provider: virtualbox
+  box: ubuntu/trusty64
+  cpu: 1
+  mem: 512
+  ip: 10.17.0.101
+  shared_folders:
+  - src: .
+    dest: /Vagrant_Shared
+    options:
+      :create: true
+      :owner: root
+      :group: root
+- name: node-2
+  provider: virtualbox
+  box: ubuntu/trusty64
+  cpu: 1
+  mem: 512
+  ip: 10.17.0.102
+  shared_folders:
+  - src: .
+    dest: /Vagrant_Shared
+    options:
+      :create: true
+      :owner: root
+      :group: root
