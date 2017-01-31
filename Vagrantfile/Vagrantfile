@@ -7,6 +7,8 @@ VAGRANTFILE_API_VERSION = "2"
 masterservers = YAML.load_file('MasterConfig.yaml')
 slaveservers = YAML.load_file('SlavesConfig.yaml')
 
+# Handle shared folders based on those configured in their respective
+# config files.
 def shared_folders(vm, host)
   if host.has_key?('shared_folders')
     folders = host['shared_folders']
@@ -17,9 +19,24 @@ def shared_folders(vm, host)
   end
 end
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  # Iterate through entries in YAML file
+# Main vagrant file logic
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # Iterate through and initialize the master server(s) in YAML file
+  masterservers.each do |masterservers|
+    config.vm.define masterservers["name"] do |mstsrv|
+      mstsrv.vm.box = masterservers["box"]
+      mstsrv.vm.network "private_network", ip: masterservers["ip"]
+      shared_folders(mstsrv.vm, masterservers)
+      mstsrv.vm.provider :virtualbox do |vb|
+        vb.name = masterservers["name"]
+        vb.memory = masterservers["mem"]
+      end
+      config.vm.provision "shell", path: "./scripts/initDSwarmManager.sh"
+    end
+  end
+
+  # Iterate through and initialize the slave server(s) in YAML file
   slaveservers.each do |slaveservers|
     config.vm.define slaveservers["name"] do |srv|
       srv.vm.box = slaveservers["box"]
@@ -29,6 +46,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         vb.name = slaveservers["name"]
         vb.memory = slaveservers["mem"]
       end
+      config.vm.provision "shell", path: "./scripts/initDSwarmNodes.sh"
     end
   end
 end

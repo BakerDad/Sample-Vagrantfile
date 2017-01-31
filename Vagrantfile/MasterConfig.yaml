@@ -1,2 +1,14 @@
 ---
-  
+- name: master
+  provider: virtualbox
+  box: ubuntu/trusty64
+  cpu: 1
+  mem: 1024
+  ip: 10.17.0.101
+  shared_folders:
+  - src: ./scripts
+    dest: /Vagrant_Shared
+    options:
+      :create: true
+      :owner: root
+      :group: root
